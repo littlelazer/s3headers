@@ -1,0 +1,80 @@
+#! /usr/bin/env python
+
+import ConfigParser, argparse, os
+
+from boto.s3.connection import S3Connection
+
+
+parser = argparse.ArgumentParser(description='Print out the S3 headers for a file.')
+parser.add_argument('files', metavar='FILE', nargs='+', help='a file to print out the headers for' )
+
+args = parser.parse_args()
+file_list = args.files
+
+#print file_list
+
+if os.path.exists(os.path.expanduser('~/.aws')):
+	aws_credentials_path = os.path.expanduser('~/.aws')
+	config  =   ConfigParser.SafeConfigParser()
+	config.readfp(open(aws_credentials_path))
+
+	if config.has_section('s3'):
+
+		if config.has_option('s3', 'access_id'):
+
+			S3_ACCESS_ID = config.get('s3', 'access_id')
+
+			#print 'grabbed s3.access_id'
+
+		else:
+
+			print '.aws config file missing acess_id'
+
+			sys.exit()
+
+		if config.has_option('s3', 'secret_key'):
+
+			S3_SECRET_KEY = config.get('s3', 'secret_key')
+
+			#print 'grabbed s3.secret_key'
+
+		else:
+
+			print '.aws config file missing secret_key'
+
+			sys.exit()
+
+		if config.has_option('s3', 'bucket'):
+
+			S3_BUCKET = config.get('s3', 'bucket')
+
+		else:
+
+			print '.aws config file missing bucket'
+			sys.exit()
+
+	else:
+
+		print 'No s3 section in .aws config file'
+
+		sys.exit()
+else:
+
+	print 'No .aws config file in user directory'
+
+	sys.exit()
+
+conn = S3Connection( S3_ACCESS_ID, S3_SECRET_KEY )
+bucket = conn.get_bucket( S3_BUCKET )
+
+for key in file_list:
+
+	remote_file = bucket.get_key( key )
+	if remote_file:
+		remote_file.set_metadata('Expires', 'Mon, 24 Sep 2013 17:35:50 GMT')
+		print remote_file.metadata
+		print remote_file.cache_control
+		print dir(remote_file)
+	
+	else: 
+		print 'This file is not on S3: %s'  % key
