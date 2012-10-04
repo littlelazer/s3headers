@@ -3,6 +3,7 @@
 import ConfigParser, argparse, os
 
 from boto.s3.connection import S3Connection
+from datetime import datetime, timedelta
 
 
 parser = argparse.ArgumentParser(description='Print out the S3 headers for a file.')
@@ -71,10 +72,10 @@ for key in file_list:
 
 	remote_file = bucket.get_key( key )
 	if remote_file:
-		remote_file.set_metadata('Expires', 'Mon, 24 Sep 2013 17:35:50 GMT')
-		print remote_file.metadata
-		print remote_file.cache_control
-		print dir(remote_file)
+		expire_date = datetime.utcnow() + timedelta(days=365)
+		expire_date = expire_date.strftime("%a, %d %b %Y %H:%M:%S GMT")
+		key_metadata = { 'Expires': expire_date, 'Cache-Control': 'public, max-age=31536000' }
+		remote_file.copy( S3_BUCKET, key, metadata=key_metadata, preserve_acl=True)
 	
 	else: 
 		print 'This file is not on S3: %s'  % key
