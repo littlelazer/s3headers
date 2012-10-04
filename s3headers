@@ -6,7 +6,7 @@ from boto.s3.connection import S3Connection
 from datetime import datetime, timedelta
 
 
-parser = argparse.ArgumentParser(description='Print out the S3 headers for a file.')
+parser = argparse.ArgumentParser(description='Sets 1 year caching headers on S3 for the specified files.')
 parser.add_argument('files', metavar='FILE', nargs='+', help='a file to print out the headers for' )
 
 args = parser.parse_args()
